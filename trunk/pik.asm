@@ -7,6 +7,9 @@
 ;Using a 50K pot with series R of 3.3K and 0.0047uF (3.1KHz - 47KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.4  2001/05/06 06:09:13  owen
+; Removed scan of paddles during rest period.
+;
 ; Revision 1.3  2001/05/01 12:29:47  owen
 ; Added latched paddle input during rest time.
 ;
@@ -36,10 +39,10 @@ AS	equ	02h		;auto character spacing
 TX	equ	04h		;keying output
 
 ;timing calibration values
-DAH	equ	0xda		;counts for dah
+DAH	equ	0xd9		;counts for dah
 DIT	equ	0x47		;counts for dit
-REST	equ	0x44		;counts for dit rest
-ASPACE	equ	0x47		;counts for char space
+REST	equ	0x43		;counts for dit rest
+ASPACE	equ	0x4a		;counts for char space
 
 	cblock	0x07
         flgs
@@ -62,8 +65,12 @@ start
 	goto	next
 
 rest
+ 	btfss	GPIO,AS		;is autospace on
+ 	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
 	call delay
+	nop
+	nop
 next
 
 ;value used to jump into jump table
@@ -118,6 +125,8 @@ dah
 	movlw   DAH             ;prepare for dah
 	bcf	flgs,IL		;iambic long flag
         call    delay           ;and delay
+	nop
+	nop
 	bcf	GPIO,TX		;key tx off
 	goto	rest
 
