@@ -2,11 +2,14 @@
 ;
 ;Iambic morse keyer - Owen Duffy
 ;
-;Ocillator at 10Khz gives 10wpm (110ms dit duration). 
+;Ocillator at 10Khz gives 10wpm (122ms dit duration). 
 ;Rext should be between 3K and 100K.
-;Using a 25K pot with series R of 3.3K and 0.0039uF (7KHz - 60KHz)
+;Using a 25K pot with series R of 3.3K and 0.0047uF (7KHz - 48KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.9  2001/05/16 22:36:08  owen
+; Recalibrated timers for 10KHz oscillator at 10wpm (110mS dit.
+;
 ; Revision 1.8  2001/05/13 06:25:15  owen
 ; Revised to product ~TX output in addition to TX, pin reassignment, renamed.
 ;
@@ -35,6 +38,7 @@
 ;======================================================================
 	__CONFIG _MCLRE_OFF & _CP_ON & _WDT_OFF & _ExtRC_OSC
 	LIST	P=PIC12C508A,mm=on
+	__IDLOCS	h'1'
 	RADIX	hex
 
 #include "p12C508A.inc"
@@ -52,10 +56,10 @@ AS	equ	0x3		;auto character spacing
 TX	equ	0x4		;keying output
 
 ;timing calibration values
-DAH	equ	0xa3		;counts for dah
-DIT	equ	0x35		;counts for dit
-REST	equ	0x32		;counts for dit rest
-ASPACE	equ	0x6a		;counts for char space
+DAH	equ	0xb5		;counts for dah
+DIT	equ	0x3b		;counts for dit
+REST	equ	0x38		;counts for dit rest
+ASPACE	equ	0x76		;counts for char space
 
 	cblock	0x07
         flgs
@@ -65,6 +69,7 @@ ASPACE	equ	0x6a		;counts for char space
 ;======================================================================
 	org	0x0
 	goto	start
+	data	'P','I','K',' ','V','1','.','1','0'
 	org	0x40		;leave unprotected memory unused
 ;======================================================================
 start

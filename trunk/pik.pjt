@@ -5,7 +5,7 @@ Processor=0x508a
 ToolSuite=Microchip
 
 [Fuses]
-Frequency=10000.000000
+Frequency=1000.000000
 ClockSource=1
 Mode=0
 WDTEnable=0
@@ -93,17 +93,15 @@ OptionString=
 AdditionalOptionString=
 
 [Windows]
-4=0000 c:\src1\pik\pik.asm 91 107 917 560 9 0
-3=0000 d:\progra~1\mplab\p12c508a.inc 132 132 958 585 9 0
 2=0020 532 17 932 242 9 0
 1=0040 11 5 499 110 9 4 16
 0=0002 C:\SRC1\PIK\Watch_1.wat 11 73 411 208 9 0
 Stopwatch=21 566 289 725 9 0
 
 [mru-list]
-1=d:\progra~1\mplab\p12c508a.inc
+1=c:\src1\pik\pik.lst
 2=c:\src1\pik\pik.asm
-3=c:\src1\pik\pik.sti
-4=c:\src1\pik\pik.lst
+3=d:\progra~1\mplab\p12c508a.inc
+4=c:\src1\pik\pik.sti
 5=c:\src1\iambic\iambic.sti
 
