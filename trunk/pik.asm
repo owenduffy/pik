@@ -7,6 +7,9 @@
 ;Using a 100K log pot with series R of 3.3K and 0.0047uF (3.1KHz - 47KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.1.1.1  2001/04/30 23:15:30  owen
+; Initial load of V1.1.
+;
 ;
 ;======================================================================
 	__CONFIG _MCLRE_OFF & _CP_ON & _WDT_OFF & _ExtRC_OSC
@@ -27,10 +30,10 @@ AS	equ	02h		;auto character spacing
 TX	equ	04h		;keying output
 
 ;timing calibration values
-DAH	equ	0xf8		;counts for dah
-DIT	equ	0x51		;counts for dit
-REST	equ	04e		;counts for dit rest
-ASPACE	equ	0xa4		;counts for char space
+DAH	equ	0xda		;counts for dah
+DIT	equ	0x47		;counts for dit
+REST	equ	0x44		;counts for dit rest
+ASPACE	equ	0x86		;counts for char space
 
 	cblock	0x07
         flgs
