@@ -7,6 +7,9 @@
 ;Using a 50K pot with series R of 3.3K and 0.0047uF (3.1KHz - 47KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.3  2001/05/01 12:29:47  owen
+; Added latched paddle input during rest time.
+;
 ; Revision 1.2  2001/04/30 23:34:12  owen
 ; Revised dit timing to 110mS. V1.2
 ;
@@ -35,14 +38,12 @@ TX	equ	04h		;keying output
 ;timing calibration values
 DAH	equ	0xda		;counts for dah
 DIT	equ	0x47		;counts for dit
-REST	equ	0x29		;counts for dit rest
+REST	equ	0x44		;counts for dit rest
 ASPACE	equ	0x47		;counts for char space
 
 	cblock	0x07
         flgs
         timer1
-	paddle
-	jto
 	endc
 ;======================================================================
 	org	0x0
@@ -55,31 +56,14 @@ start
 	clrw                    ;clear everything
 	movwf   GPIO 
 	clrf	flgs
-	movlw	jtable-next	;compute jtable relative offset
-	movwf	jto		;and store it
 	movlw	~(1<<TX)        ;mask for TRIS for output pin
 	andlw	0x3f	        ;mask lower 6 bits
 	tris	GPIO	        ;and turn it on
 	goto	next
 
 rest
-;insert the rest period after an element, and latch paddle inputs
-	btfss	GPIO,AS		;is autospace on
-	bsf	flgs,IC		;set in character flag
-	clrf	paddle
-	comf	paddle,f
         movlw   REST            ;put element duration in W
-	movwf	timer1
-l1	movfw	GPIO		;read paddle
-	andwf	paddle,f	;latch paddle
-	decfsz	timer1,1
-	goto	l1
-
-	movfw	paddle		;get paddle latch
-	andlw	0x3	        ;mask lower 2 bits
-	iorwf	flgs,w		;or in the flgs
-	addwf	jto,w		;add in jtable rel offset
-	addwf	PCL,f		;computed goto
+	call delay
 next
 
 ;value used to jump into jump table
