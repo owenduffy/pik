@@ -7,6 +7,9 @@
 ;Using a 50K pot with series R of 3.3K and 0.0047uF (3.1KHz - 47KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.5  2001/05/06 07:15:49  owen
+; Restored broken autospace function
+;
 ; Revision 1.4  2001/05/06 06:09:13  owen
 ; Removed scan of paddles during rest period.
 ;
@@ -42,7 +45,7 @@ TX	equ	04h		;keying output
 DAH	equ	0xd9		;counts for dah
 DIT	equ	0x47		;counts for dit
 REST	equ	0x43		;counts for dit rest
-ASPACE	equ	0x4a		;counts for char space
+ASPACE	equ	0x90		;counts for char space
 
 	cblock	0x07
         flgs
@@ -110,7 +113,7 @@ aspace
 	clrf	flgs
  	movlw	ASPACE		;prepare for end of character delay
 	call	delay
-        goto    rest
+        goto    next
 
 dit
 	bsf	GPIO,TX		;key tx on
