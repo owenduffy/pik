@@ -1,12 +1,31 @@
+;
+;Iambic morse keyer
+;
+;Copyright 2001 Owen Duffy.
+;
 ;======================================================================
-;
-;Iambic morse keyer - Owen Duffy
-;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; at your option) any later version.
+; 
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+;======================================================================
 ;Ocillator at 10Khz gives 10wpm (122ms dit duration). 
 ;Rext should be between 3K and 100K.
 ;Using a 25K pot with series R of 3.3K and 0.0047uF (7KHz - 48KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.13  2003/03/28 22:06:45  owen
+; Added sleep, removed ~TX.
+;
 ; Revision 1.12  2002/03/03 09:17:28  owen
 ; Removed sleep feature.
 ;
@@ -77,7 +96,7 @@ ASPACE	equ	0x76		;counts for char space
 ;======================================================================
 	org	0x0
 	goto	start
-	data	'P','I','K',' ','V','1','.','1','3'
+	data	'P','I','K',' ','V','1','.','1','4'
 	org	0x40		;leave unprotected memory unused
 ;======================================================================
 start	clrw			;initialise GPIO
