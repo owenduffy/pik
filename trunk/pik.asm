@@ -7,6 +7,9 @@
 ;Using a 25K pot with series R of 3.3K and 0.0047uF (7KHz - 48KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.11  2001/12/20 05:08:03  owen
+; Added sleep feature to save power.
+;
 ; Revision 1.10  2001/08/19 10:25:49  owen
 ; Added eyeball, ID, small change in calibration
 ;
@@ -72,18 +75,17 @@ ASPACE	equ	0x76		;counts for char space
 ;======================================================================
 	org	0x0
 	goto	start
-	data	'P','I','K',' ','V','1','.','1','1'
+	data	'P','I','K',' ','V','1','.','1','2'
 	org	0x40		;leave unprotected memory unused
 ;======================================================================
 start	movlw	1<<TXI		;initialise GPIO
-	movwf   GPIO 
-	movlw	~(1<<TX | 1<<TXI) ;mask for TRIS for output pins
-	tris	GPIO	        ;and turn it on
+	movwf   GPIO
+	clrf	flgs
 	clrw			;setup the options bits
 	option
-	clrf	flgs
+	movlw	~(1<<TX | 1<<TXI) ;mask for TRIS for output pins
+	tris	GPIO	        ;and turn it on
 	movlw	(1<<DAHSW | 1<<DITSW) ;paddle pins
-	goto	route
 
 ;value used to jump into jump table
 ;bit	use
@@ -100,12 +102,12 @@ route	andwf	GPIO,w		;or in the paddle
 jtable	goto	dit
 	goto	dah
 	goto	dit
-	sleep
+	goto	route
 
 	goto	dah
 	goto	dah
 	goto	dit
-	sleep
+	goto	route
 
 	goto	dit
 	goto	dah
@@ -122,7 +124,7 @@ aspace	clrf	flgs
  	comf	paddle,f
  	movlw	ASPACE		;prepare for end of character delay
 	call	delay
-	movfw	paddle		;get paddle latch
+	movf	paddle,w	;get paddle latch
 	goto	route
 
 dit	bsf	GPIO,TX		;tx hi
@@ -139,7 +141,7 @@ dit	bsf	GPIO,TX		;tx hi
  	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
 	call delay
-	movfw	paddle		;get paddle latch
+	movf	paddle,w	;get paddle latch
 	iorlw	1<<DITSW        ;ignore dit bit
 	nop
 	nop
@@ -160,7 +162,7 @@ dah	bsf	GPIO,TX		;tx hi
  	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
 	call delay
-	movfw	paddle		;get paddle latch
+	movf	paddle,w	;get paddle latch
 	iorlw	1<<DAHSW        ;ignore dah bit
 	nop
 	nop
@@ -171,7 +173,7 @@ dah	bsf	GPIO,TX		;tx hi
 ;5 cycles per click, 2.0mS at 10KHz (10wpm)
 delay
 	movwf	timer1
-	movfw	GPIO		;read paddle
+	movf	GPIO,w		;read paddle
 	andwf	paddle,f	;latch paddle
 	decfsz	timer1,1
 	goto	$-3
