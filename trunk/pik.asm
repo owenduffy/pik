@@ -2,11 +2,14 @@
 ;
 ;Iambic morse keyer - Owen Duffy
 ;
-;Ocillator at 8Khz gives 10wpm (110ms dit duration). 
+;Ocillator at 10Khz gives 10wpm (110ms dit duration). 
 ;Rext should be between 3K and 100K.
-;Using a 50K pot with series R of 3.3K and 0.0047uF (3.1KHz - 47KHz)
+;Using a 25K pot with series R of 3.3K and 0.0039uF (7KHz - 60KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.8  2001/05/13 06:25:15  owen
+; Revised to product ~TX output in addition to TX, pin reassignment, renamed.
+;
 ; Revision 1.7  2001/05/10 11:18:52  owen
 ; Added dot and dash look ahead as per ACCU-KEYER.
 ;
@@ -49,10 +52,10 @@ AS	equ	0x3		;auto character spacing
 TX	equ	0x4		;keying output
 
 ;timing calibration values
-DAH	equ	0x82		;counts for dah
-DIT	equ	0x2a		;counts for dit
-REST	equ	0x27		;counts for dit rest
-ASPACE	equ	0x54		;counts for char space
+DAH	equ	0xa3		;counts for dah
+DIT	equ	0x35		;counts for dit
+REST	equ	0x32		;counts for dit rest
+ASPACE	equ	0x6a		;counts for char space
 
 	cblock	0x07
         flgs
@@ -159,7 +162,7 @@ dah	bsf	GPIO,TX		;tx hi
 	goto	route1
 ;======================================================================
 ;delays (spins) for number of clicks in reg W
-;5 cycles per click, 2.5mS at 8KHz (10wpm)
+;5 cycles per click, 2.0mS at 10KHz (10wpm)
 delay
 	movwf	timer1
 	movfw	GPIO		;read paddle
