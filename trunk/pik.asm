@@ -7,6 +7,9 @@
 ;Using a 25K pot with series R of 3.3K and 0.0047uF (7KHz - 48KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.10  2001/08/19 10:25:49  owen
+; Added eyeball, ID, small change in calibration
+;
 ; Revision 1.9  2001/05/16 22:36:08  owen
 ; Recalibrated timers for 10KHz oscillator at 10wpm (110mS dit.
 ;
@@ -69,18 +72,18 @@ ASPACE	equ	0x76		;counts for char space
 ;======================================================================
 	org	0x0
 	goto	start
-	data	'P','I','K',' ','V','1','.','1','0'
+	data	'P','I','K',' ','V','1','.','1','1'
 	org	0x40		;leave unprotected memory unused
 ;======================================================================
-start
-	clrw			;setup the options bits
-	option
-	movlw	1<<TXI		;initialise GPIO
+start	movlw	1<<TXI		;initialise GPIO
 	movwf   GPIO 
 	movlw	~(1<<TX | 1<<TXI) ;mask for TRIS for output pins
 	tris	GPIO	        ;and turn it on
+	clrw			;setup the options bits
+	option
 	clrf	flgs
-	goto	route2
+	movlw	(1<<DAHSW | 1<<DITSW) ;paddle pins
+	goto	route
 
 ;value used to jump into jump table
 ;bit	use
@@ -89,9 +92,7 @@ start
 ;2	il
 ;3	ic
 
-route1	andwf	GPIO,w		;or in the paddle
-	goto	$+2
-route2	movfw	GPIO
+route	andwf	GPIO,w		;or in the paddle
 	andlw	1<<DITSW | 1<<DAHSW ;mask paddle bits
 	iorwf	flgs,w		;or in the flgs
 	addwf	PCL,f		;computed goto
@@ -99,12 +100,12 @@ route2	movfw	GPIO
 jtable	goto	dit
 	goto	dah
 	goto	dit
-	goto	route2
+	sleep
 
 	goto	dah
 	goto	dah
 	goto	dit
-	goto	route2
+	sleep
 
 	goto	dit
 	goto	dah
@@ -122,7 +123,7 @@ aspace	clrf	flgs
  	movlw	ASPACE		;prepare for end of character delay
 	call	delay
 	movfw	paddle		;get paddle latch
-	goto	route1
+	goto	route
 
 dit	bsf	GPIO,TX		;tx hi
 	bcf	GPIO,TXI	;txi lo
@@ -134,7 +135,7 @@ dit	bsf	GPIO,TX		;tx hi
 	bcf	GPIO,TX		;tx lo
 	bsf	GPIO,TXI	;txi hi
 
- 	btfss	GPIO,AS		;is autospace on
+ 	btfsc	GPIO,AS		;is autospace on
  	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
 	call delay
@@ -143,7 +144,7 @@ dit	bsf	GPIO,TX		;tx hi
 	nop
 	nop
 	nop
-	goto	route1
+	goto	route
 
 dah	bsf	GPIO,TX		;tx hi
 	bcf	GPIO,TXI	;txi lo
@@ -155,7 +156,7 @@ dah	bsf	GPIO,TX		;tx hi
 	bcf	GPIO,TX		;tx lo
 	bsf	GPIO,TXI	;txi hi
 
- 	btfss	GPIO,AS		;is autospace on
+ 	btfsc	GPIO,AS		;is autospace on
  	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
 	call delay
@@ -164,7 +165,7 @@ dah	bsf	GPIO,TX		;tx hi
 	nop
 	nop
 	nop
-	goto	route1
+	goto	route
 ;======================================================================
 ;delays (spins) for number of clicks in reg W
 ;5 cycles per click, 2.0mS at 10KHz (10wpm)
