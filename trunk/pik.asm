@@ -7,6 +7,9 @@
 ;Using a 25K pot with series R of 3.3K and 0.0047uF (7KHz - 48KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.12  2002/03/03 09:17:28  owen
+; Removed sleep feature.
+;
 ; Revision 1.11  2001/12/20 05:08:03  owen
 ; Added sleep feature to save power.
 ;
@@ -43,7 +46,7 @@
 ;
 ;======================================================================
 	__CONFIG _MCLRE_OFF & _CP_ON & _WDT_OFF & _ExtRC_OSC
-	LIST	P=PIC12C508A,mm=on
+	LIST	P=12C508A,mm=on
 	__IDLOCS	h'1'
 	RADIX	hex
 
@@ -57,14 +60,13 @@ DAHSW	equ	DITSW+1		;dash switch (on paddle key)
 IL	equ	DAHSW+1		;iambic dash flag
 IC	equ	IL+1		;in character
 
-TXI	equ	0x2
 AS	equ	0x3		;auto character spacing
 TX	equ	0x4		;keying output
 
 ;timing calibration values
 DAH	equ	0xb5		;counts for dah
 DIT	equ	0x3b		;counts for dit
-REST	equ	0x38		;counts for dit rest
+REST	equ	0x39		;counts for dit rest
 ASPACE	equ	0x76		;counts for char space
 
 	cblock	0x07
@@ -75,17 +77,17 @@ ASPACE	equ	0x76		;counts for char space
 ;======================================================================
 	org	0x0
 	goto	start
-	data	'P','I','K',' ','V','1','.','1','2'
+	data	'P','I','K',' ','V','1','.','1','3'
 	org	0x40		;leave unprotected memory unused
 ;======================================================================
-start	movlw	1<<TXI		;initialise GPIO
-	movwf   GPIO
-	clrf	flgs
+start	clrw			;initialise GPIO
+	movwf   GPIO 
+	movlw	~(1<<TX)	;mask for TRIS for output pins
+	tris	GPIO	        ;and activate outputs
 	clrw			;setup the options bits
 	option
-	movlw	~(1<<TX | 1<<TXI) ;mask for TRIS for output pins
-	tris	GPIO	        ;and turn it on
-	movlw	(1<<DAHSW | 1<<DITSW) ;paddle pins
+	movlw	(1<<DAHSW|1<<DITSW) ;paddle pins
+clrflgs	clrf	flgs
 
 ;value used to jump into jump table
 ;bit	use
@@ -95,19 +97,19 @@ start	movlw	1<<TXI		;initialise GPIO
 ;3	ic
 
 route	andwf	GPIO,w		;or in the paddle
-	andlw	1<<DITSW | 1<<DAHSW ;mask paddle bits
+	andlw	1<<DITSW|1<<DAHSW ;mask paddle bits
 	iorwf	flgs,w		;or in the flgs
 	addwf	PCL,f		;computed goto
 
 jtable	goto	dit
 	goto	dah
 	goto	dit
-	goto	route
+	sleep
 
 	goto	dah
 	goto	dah
 	goto	dit
-	goto	route
+	sleep
 
 	goto	dit
 	goto	dah
@@ -124,56 +126,49 @@ aspace	clrf	flgs
  	comf	paddle,f
  	movlw	ASPACE		;prepare for end of character delay
 	call	delay
-	movf	paddle,w	;get paddle latch
+	movfw	paddle		;get paddle latch
 	goto	route
 
 dit	bsf	GPIO,TX		;tx hi
-	bcf	GPIO,TXI	;txi lo
  	clrf	paddle		;clear the paddle latch
  	comf	paddle,f
         movlw   DIT             ;prepare for dit
 	bsf	flgs,IL		;iambic long flag
         call    delay           ;and delay
+	nop
 	bcf	GPIO,TX		;tx lo
-	bsf	GPIO,TXI	;txi hi
 
  	btfsc	GPIO,AS		;is autospace on
  	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
 	call delay
-	movf	paddle,w	;get paddle latch
+	movfw	paddle		;get paddle latch
 	iorlw	1<<DITSW        ;ignore dit bit
-	nop
-	nop
 	nop
 	goto	route
 
 dah	bsf	GPIO,TX		;tx hi
-	bcf	GPIO,TXI	;txi lo
  	clrf	paddle		;clear the paddle latch
  	comf	paddle,f
 	movlw   DAH             ;prepare for dah
 	bcf	flgs,IL		;iambic long flag
         call    delay           ;and delay
+	nop
 	bcf	GPIO,TX		;tx lo
-	bsf	GPIO,TXI	;txi hi
 
  	btfsc	GPIO,AS		;is autospace on
  	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
-	call delay
-	movf	paddle,w	;get paddle latch
+	call	delay
+	movfw	paddle		;get paddle latch
 	iorlw	1<<DAHSW        ;ignore dah bit
-	nop
-	nop
-	nop
 	goto	route
 ;======================================================================
 ;delays (spins) for number of clicks in reg W
 ;5 cycles per click, 2.0mS at 10KHz (10wpm)
 delay
 	movwf	timer1
-	movf	GPIO,w		;read paddle
+	movfw	GPIO		;read paddle
 	andwf	paddle,f	;latch paddle
 	decfsz	timer1,1
 	goto	$-3
