@@ -1,6 +1,8 @@
 CYCLE 	GP2	GP0	GP1	;as dit dah
-0	1	1	1	;initial
-50	1	0	0	;iambic
-1600	1	1	1	;rest
+0	0	1	1	;initial
+50	0	0	0	;iambic
+1600	0	1	1	;rest
+2100	0	0	1	;another dit via the latch
+2200	0	1	1	;rest
 
 

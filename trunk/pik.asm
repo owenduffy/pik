@@ -2,11 +2,14 @@
 ;
 ;Iambic morse keyer - Owen Duffy
 ;
-;Ocillator at 8Khz gives 10wpm (125ms dit duration). 
+;Ocillator at 8Khz gives 10wpm (110ms dit duration). 
 ;Rext should be between 3K and 100K.
-;Using a 100K log pot with series R of 3.3K and 0.0047uF (3.1KHz - 47KHz)
+;Using a 50K pot with series R of 3.3K and 0.0047uF (3.1KHz - 47KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.2  2001/04/30 23:34:12  owen
+; Revised dit timing to 110mS. V1.2
+;
 ; Revision 1.1.1.1  2001/04/30 23:15:30  owen
 ; Initial load of V1.1.
 ;
@@ -32,12 +35,14 @@ TX	equ	04h		;keying output
 ;timing calibration values
 DAH	equ	0xda		;counts for dah
 DIT	equ	0x47		;counts for dit
-REST	equ	0x44		;counts for dit rest
-ASPACE	equ	0x86		;counts for char space
+REST	equ	0x29		;counts for dit rest
+ASPACE	equ	0x47		;counts for char space
 
 	cblock	0x07
         flgs
         timer1
+	paddle
+	jto
 	endc
 ;======================================================================
 	org	0x0
@@ -48,18 +53,34 @@ start
 	movlw	0		;setup the options bits
 	option
 	clrw                    ;clear everything
+	movwf   GPIO 
 	clrf	flgs
-        movwf   GPIO 
+	movlw	jtable-next	;compute jtable relative offset
+	movwf	jto		;and store it
 	movlw	~(1<<TX)        ;mask for TRIS for output pin
 	andlw	0x3f	        ;mask lower 6 bits
 	tris	GPIO	        ;and turn it on
 	goto	next
 
-rest	
+rest
+;insert the rest period after an element, and latch paddle inputs
 	btfss	GPIO,AS		;is autospace on
 	bsf	flgs,IC		;set in character flag
+	clrf	paddle
+	comf	paddle,f
         movlw   REST            ;put element duration in W
-        call    delay           ;and delay
+	movwf	timer1
+l1	movfw	GPIO		;read paddle
+	andwf	paddle,f	;latch paddle
+	decfsz	timer1,1
+	goto	l1
+
+	movfw	paddle		;get paddle latch
+	andlw	0x3	        ;mask lower 2 bits
+	iorwf	flgs,w		;or in the flgs
+	addwf	jto,w		;add in jtable rel offset
+	addwf	PCL,f		;computed goto
+next
 
 ;value used to jump into jump table
 ;bit	use
@@ -68,12 +89,12 @@ rest
 ;2	il
 ;3	ic
 
-next
 	movfw	GPIO
 	andlw	0x3	        ;mask lower 2 bits
 	iorwf	flgs,w		;or in the flgs
 	addwf	PCL,f		;computed goto
 
+jtable
 	goto	dit
 	goto	dah
 	goto	dit
@@ -98,7 +119,7 @@ aspace
 	clrf	flgs
  	movlw	ASPACE		;prepare for end of character delay
 	call	delay
-        goto    next
+        goto    rest
 
 dit
 	bsf	GPIO,TX		;key tx on

@@ -90,8 +90,7 @@ AdditionalOptionString=
 3=c:\src1\iambic\iambic.lst
 
 [Windows]
-3=0000 c:\src1\iambic\iambic.asm 66 66 892 519 9 0
-2=0020 532 15 932 240 9 0
-1=0002 C:\SRC1\IAMBIC\Watch_1.wat 16 121 416 256 9 0
+2=0000 c:\src1\iambic\iambic.asm 88 88 914 541 9 0
+1=0020 532 15 932 240 9 0
 0=0040 11 5 499 110 9 4 16
 
