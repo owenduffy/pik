@@ -7,6 +7,9 @@
 ;Using a 50K pot with series R of 3.3K and 0.0047uF (3.1KHz - 47KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.7  2001/05/10 11:18:52  owen
+; Added dot and dash look ahead as per ACCU-KEYER.
+;
 ; Revision 1.6  2001/05/06 09:24:34  owen
 ; Fixed broken autospace.
 ;
@@ -33,22 +36,23 @@
 
 #include "p12C508A.inc"
 
-;flgs bits mask
-IL	equ	02h		;iambic dash flag
-IC	equ	03h		;in character
 
-;port mask definitions
-;the next 3 MUST be at those absolute addresses for the indirect jump
-DITSW	equ	00h		;dot switch (on paddle key)
-DAHSW	equ	01h		;dash switch (on paddle key)
-AS	equ	02h		;auto character spacing
-TX	equ	04h		;keying output
+;port & flgs mask definitions
+;these equates must be contiguous from 0
+DITSW	equ	0		;dot switch (on paddle key)
+DAHSW	equ	DITSW+1		;dash switch (on paddle key)
+IL	equ	DAHSW+1		;iambic dash flag
+IC	equ	IL+1		;in character
+
+TXI	equ	0x2
+AS	equ	0x3		;auto character spacing
+TX	equ	0x4		;keying output
 
 ;timing calibration values
 DAH	equ	0x82		;counts for dah
 DIT	equ	0x2a		;counts for dit
-REST	equ	0x28		;counts for dit rest
-ASPACE	equ	0x53		;counts for char space
+REST	equ	0x27		;counts for dit rest
+ASPACE	equ	0x54		;counts for char space
 
 	cblock	0x07
         flgs
@@ -61,14 +65,13 @@ ASPACE	equ	0x53		;counts for char space
 	org	0x40		;leave unprotected memory unused
 ;======================================================================
 start
-	movlw	0		;setup the options bits
+	clrw			;setup the options bits
 	option
-	clrw                    ;clear everything
+	movlw	1<<TXI		;initialise GPIO
 	movwf   GPIO 
-	clrf	flgs
-	movlw	~(1<<TX)        ;mask for TRIS for output pin
-	andlw	0x3f	        ;mask lower 6 bits
+	movlw	~(1<<TX | 1<<TXI) ;mask for TRIS for output pins
 	tris	GPIO	        ;and turn it on
+	clrf	flgs
 	goto	route2
 
 ;value used to jump into jump table
@@ -81,7 +84,7 @@ start
 route1	andwf	GPIO,w		;or in the paddle
 	goto	$+2
 route2	movfw	GPIO
-	andlw	0x3	        ;mask lower 2 bits
+	andlw	1<<DITSW | 1<<DAHSW ;mask paddle bits
 	iorwf	flgs,w		;or in the flgs
 	addwf	PCL,f		;computed goto
 
@@ -113,39 +116,45 @@ aspace	clrf	flgs
 	movfw	paddle		;get paddle latch
 	goto	route1
 
-dit	bsf	GPIO,TX		;key tx on
+dit	bsf	GPIO,TX		;tx hi
+	bcf	GPIO,TXI	;txi lo
  	clrf	paddle		;clear the paddle latch
  	comf	paddle,f
         movlw   DIT             ;prepare for dit
 	bsf	flgs,IL		;iambic long flag
         call    delay           ;and delay
-	bcf	GPIO,TX		;key tx off
+	bcf	GPIO,TX		;tx lo
+	bsf	GPIO,TXI	;txi hi
 
  	btfss	GPIO,AS		;is autospace on
  	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
 	call delay
 	movfw	paddle		;get paddle latch
-	iorlw	0x1	        ;overwrite dit bit
+	iorlw	1<<DITSW        ;ignore dit bit
+	nop
+	nop
 	nop
 	goto	route1
 
-dah	bsf	GPIO,TX		;key tx on
+dah	bsf	GPIO,TX		;tx hi
+	bcf	GPIO,TXI	;txi lo
  	clrf	paddle		;clear the paddle latch
  	comf	paddle,f
 	movlw   DAH             ;prepare for dah
 	bcf	flgs,IL		;iambic long flag
         call    delay           ;and delay
-	nop
-	nop
-	bcf	GPIO,TX		;key tx off
+	bcf	GPIO,TX		;tx lo
+	bsf	GPIO,TXI	;txi hi
 
  	btfss	GPIO,AS		;is autospace on
  	bsf	flgs,IC		;set in character flag
         movlw   REST            ;put element duration in W
 	call delay
 	movfw	paddle		;get paddle latch
-	iorlw	0x2	        ;overwrite dah bit
+	iorlw	1<<DAHSW        ;ignore dah bit
+	nop
+	nop
 	nop
 	goto	route1
 ;======================================================================
