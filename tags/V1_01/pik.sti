@@ -1,0 +1,6 @@
+CYCLE 	GP2	GP0	GP1	;as dit dah
+0	1	1	1	;initial
+50	1	0	0	;iambic
+1600	1	1	1	;rest
+
+
