@@ -23,6 +23,9 @@
 ;Using a 25K pot with series R of 3.3K and 0.0047uF (7KHz - 48KHz)
 ;
 ; $Log: not supported by cvs2svn $
+; Revision 1.14  2004/10/16 22:55:45  owen
+; Added GPL.
+;
 ; Revision 1.13  2003/03/28 22:06:45  owen
 ; Added sleep, removed ~TX.
 ;
@@ -64,12 +67,33 @@
 ;
 ;
 ;======================================================================
+
+ 	ifdef __12C508
 	__CONFIG _MCLRE_OFF & _CP_ON & _WDT_OFF & _ExtRC_OSC
+	#include "p12C508.inc"
+	LIST	P=12C508,mm=on
+	endif
+
+	ifdef __12C508A
+	__CONFIG _MCLRE_OFF & _CP_ON & _WDT_OFF & _ExtRC_OSC
+	#include "p12C508A.inc"
 	LIST	P=12C508A,mm=on
+	endif
+
+	ifdef __12F509
+	__CONFIG _MCLRE_OFF & _CP_ON & _WDT_OFF & _ExtRC_OSC
+	#include "p12F509.inc"
+	LIST	P=12F509,mm=on
+	endif
+
+	ifdef __12CE519
+	__CONFIG _MCLRE_OFF & _CP_ON & _WDT_OFF & _ExtRC_OSC
+	#include "p12CE519.inc"
+	LIST	P=12CE519,mm=on
+	endif
+
 	__IDLOCS	h'1'
 	RADIX	hex
-
-#include "p12C508A.inc"
 
 
 ;port & flgs mask definitions
