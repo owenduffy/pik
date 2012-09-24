@@ -92,6 +92,12 @@
 	LIST	P=12CE519,mm=on
 	endif
 
+	ifdef __12F510
+	#include "p12F510.inc"
+	__CONFIG _MCLRE_OFF & _CP_ON & _WDT_OFF & _ExtRC_OSC & _IOSCFS_OFF
+	LIST	P=12F510,mm=on
+	endif
+
 	__IDLOCS	h'1'
 	RADIX	hex
 
@@ -112,20 +118,27 @@ DIT	equ	0x3b		;counts for dit
 REST	equ	0x39		;counts for dit rest
 ASPACE	equ	0x76		;counts for char space
 
-	cblock	0x07
+	cblock	0x0a
         flgs
         timer1
-	paddle
+		paddle
 	endc
 ;======================================================================
 	org	0x0
 	goto	start
-	data	'P','I','K',' ','V','1','.','1','4'
+	data	'P','I','K',' ','V','1','.','1','5'
 	org	0x40		;leave unprotected memory unused
 ;======================================================================
-start	clrw			;initialise GPIO
-	movwf   GPIO 
-	movlw	~(1<<TX)	;mask for TRIS for output pins
+start
+	ifdef __12F510
+	movlw	~(1<<C1ON)	;mask for comparator off
+	andwf   CM1CON0
+	movlw	~(1<<ANS1 | 1<<ANS0) ;mask for ADC off
+	andwf   ADCON0
+	endif
+	clrw			;initialise GPIO
+	movwf   GPIO
+ 	movlw	~(1<<TX)	;mask for TRIS for output pins
 	tris	GPIO	        ;and activate outputs
 	clrw			;setup the options bits
 	option
