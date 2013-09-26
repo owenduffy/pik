@@ -22,50 +22,6 @@
 ;Rext should be between 3K and 100K.
 ;Using a 25K pot with series R of 3.3K and 0.0047uF (7KHz - 48KHz)
 ;
-; $Log: not supported by cvs2svn $
-; Revision 1.14  2004/10/16 22:55:45  owen
-; Added GPL.
-;
-; Revision 1.13  2003/03/28 22:06:45  owen
-; Added sleep, removed ~TX.
-;
-; Revision 1.12  2002/03/03 09:17:28  owen
-; Removed sleep feature.
-;
-; Revision 1.11  2001/12/20 05:08:03  owen
-; Added sleep feature to save power.
-;
-; Revision 1.10  2001/08/19 10:25:49  owen
-; Added eyeball, ID, small change in calibration
-;
-; Revision 1.9  2001/05/16 22:36:08  owen
-; Recalibrated timers for 10KHz oscillator at 10wpm (110mS dit.
-;
-; Revision 1.8  2001/05/13 06:25:15  owen
-; Revised to product ~TX output in addition to TX, pin reassignment, renamed.
-;
-; Revision 1.7  2001/05/10 11:18:52  owen
-; Added dot and dash look ahead as per ACCU-KEYER.
-;
-; Revision 1.6  2001/05/06 09:24:34  owen
-; Fixed broken autospace.
-;
-; Revision 1.5  2001/05/06 07:15:49  owen
-; Restored broken autospace function
-;
-; Revision 1.4  2001/05/06 06:09:13  owen
-; Removed scan of paddles during rest period.
-;
-; Revision 1.3  2001/05/01 12:29:47  owen
-; Added latched paddle input during rest time.
-;
-; Revision 1.2  2001/04/30 23:34:12  owen
-; Revised dit timing to 110mS. V1.2
-;
-; Revision 1.1.1.1  2001/04/30 23:15:30  owen
-; Initial load of V1.1.
-;
-;
 ;======================================================================
 
  	ifdef __12C508
